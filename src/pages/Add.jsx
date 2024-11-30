@@ -50,20 +50,41 @@ const Add = () => {
   const [dataVariants, setDataVariants] = useState([dataTmp]);
   const [imageUrls, setImageUrls] = useState([]);
   const handleSizeStockChange = (variantIndex, size, value) => {
-    const updatedVariants = dataVariants.map((variant, index) => {
-      if (index === variantIndex) {
-        return {
-          ...variant,
-          sizeStock: variant.sizeStock.map((item) =>
-            item.size === size ? { ...item, stock: parseInt(value) || 0 } : item
-          ),
-        };
-      }
-      return variant;
-    });
+    // Clone the current state to avoid direct mutation
+    const updatedVariants = [...dataVariants];
 
+    // Find the specific variant and size to update
+    const targetVariant = updatedVariants[variantIndex];
+    const targetSizeStock = targetVariant.sizeStock.find(
+      (item) => item.size === size
+    );
+
+    if (targetSizeStock) {
+      // Update the stock value directly for the specific size
+      targetSizeStock.stock = parseInt(value) || 0;
+    }
+    // console.log(updatedVariants);
+    // Update the state with the modified data
     setDataVariants(updatedVariants);
   };
+
+  // const handleSizeStockChange = (variantIndex, size, value) => {
+  //   console.log(value);
+  //   console.log(dataVariants);
+  //   const updatedVariants = dataVariants.map((variant, index) => {
+  //     if (index === variantIndex) {
+  //       return {
+  //         ...variant,
+  //         sizeStock: variant.sizeStock.map((item) =>
+  //           item.size === size ? { ...item, stock: parseInt(value) || 0 } : item
+  //         ),
+  //       };
+  //     }
+  //     return variant;
+  //   });
+  //   console.log(updatedVariants);
+  //   setDataVariants(updatedVariants);
+  // };
   // const handleSizeStockChange = (index, size, value) => {
   //   setDataVariants((prevVariants) =>
   //     prevVariants.sizeStock.map((variant, i) =>
@@ -87,13 +108,6 @@ const Add = () => {
     img: (
       <>
         <label htmlFor={`imgVariants${noVariants}`}>
-          {console.log(
-            "ngetest ke refres apa engga ",
-            imageUrls[noVariants],
-            imageUrls,
-            noVariants
-          )}
-
           <img
             className="w-20 cursor-pointer"
             src={imageUrls[noVariants] || assets.upload_area}
@@ -224,6 +238,7 @@ const Add = () => {
     { label: "Manage Products" },
     { label: "Add Products" },
   ];
+
   const handleImageChangeForVariant = (variantIndex, file) => {
     const updatedImageUrls = [...imageUrls];
     URL.revokeObjectURL(updatedImageUrls[variantIndex]); // Revoke the old URL
@@ -232,11 +247,13 @@ const Add = () => {
     handleVariantChange(variantIndex, "img", file);
   };
   const handleVariantChange = (index, field, value) => {
-    setDataVariants((prevVariants) =>
-      prevVariants.map((variant, i) =>
+    setDataVariants((prevVariants) => {
+      const updatedVariants = prevVariants.map((variant, i) =>
         i === index ? { ...variant, [field]: value } : variant
-      )
-    );
+      );
+
+      return updatedVariants;
+    });
   };
 
   const addNewVariant = () => {
@@ -254,24 +271,31 @@ const Add = () => {
   };
 
   const covertVariant = async () => {
+    console.log("awal ", dataVariants);
     let result = await Promise.all(
       dataVariants.map(async (variant) => {
         try {
-          const base64 = await convertToBase64(variant.img);
-          return {
-            img: base64,
-            name: variant.name,
-            sizeStock: variant.sizeStock,
-            kode: variant.kode,
-          };
+          if (variant.img === "") {
+            console.log("masuk if");
+            console.log(variant.name);
+            return {
+              img: "",
+              name: variant.name,
+              sizeStock: variant.sizeStock,
+              kode: variant.kode,
+            };
+          } else {
+            const base64 = await convertToBase64(variant.img);
+            return {
+              img: base64,
+              name: variant.name,
+              sizeStock: variant.sizeStock,
+              kode: variant.kode,
+            };
+          }
         } catch (error) {
           console.log("error: ", error);
-          return {
-            img: "",
-            name: variant.name,
-            sizeStock: variant.sizeStock,
-            kode: variant.kode,
-          }; // Skip this variant if conversion fails
+          return null; // Skip this variant if conversion fails
         }
       })
     );
@@ -401,9 +425,7 @@ const Add = () => {
     getSubCategory();
   }, []);
 
-  useEffect(() => {
-    console.log(dataVariants);
-  }, [
+  useEffect(() => {}, [
     category,
     subCategory,
     images,
