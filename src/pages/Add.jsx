@@ -9,217 +9,51 @@ import Row from "../components/Row";
 import Button from "../components/Button";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCirclePlus,
+  faEye,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { backendUrl } from "../App";
 import axios from "axios";
 import Select from "react-select";
+import VariantTable from "../components/VariantTable";
+import Modal from "../components/Modal";
+import ConfirmationModal from "../components/Confirmation";
 
 const Add = () => {
   const url = backendUrl + "/backend/api/products";
   const toastId = React.useRef(null);
   const toastIdError = React.useRef(null);
-  const [noVariants, setNoVariats] = useState(0);
 
-  const dataTmp = {
-    img: "",
-    name: "",
-    sizeStock: [
-      {
-        size: "S",
-        stock: 0,
-      },
-      {
-        size: "M",
-        stock: 0,
-      },
-      {
-        size: "L",
-        stock: 0,
-      },
-      {
-        size: "XL",
-        stock: 0,
-      },
-      {
-        size: "XLL",
-        stock: 0,
-      },
-    ],
-    kode: "",
-  };
-  const [dataVariants, setDataVariants] = useState([dataTmp]);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false); // Video loading spinner
+
+  const [isOpenPreview, setIsOpenPreview] = useState(false);
+
   const [imageUrls, setImageUrls] = useState([]);
-  const handleSizeStockChange = (variantIndex, size, value) => {
-    // Clone the current state to avoid direct mutation
-    const updatedVariants = [...dataVariants];
 
-    // Find the specific variant and size to update
-    const targetVariant = updatedVariants[variantIndex];
-    const targetSizeStock = targetVariant.sizeStock.find(
-      (item) => item.size === size
-    );
-
-    if (targetSizeStock) {
-      // Update the stock value directly for the specific size
-      targetSizeStock.stock = parseInt(value) || 0;
-    }
-    // console.log(updatedVariants);
-    // Update the state with the modified data
-    setDataVariants(updatedVariants);
-  };
-
-  // const handleSizeStockChange = (variantIndex, size, value) => {
-  //   console.log(value);
-  //   console.log(dataVariants);
-  //   const updatedVariants = dataVariants.map((variant, index) => {
-  //     if (index === variantIndex) {
-  //       return {
-  //         ...variant,
-  //         sizeStock: variant.sizeStock.map((item) =>
-  //           item.size === size ? { ...item, stock: parseInt(value) || 0 } : item
-  //         ),
-  //       };
-  //     }
-  //     return variant;
-  //   });
-  //   console.log(updatedVariants);
-  //   setDataVariants(updatedVariants);
-  // };
-  // const handleSizeStockChange = (index, size, value) => {
-  //   setDataVariants((prevVariants) =>
-  //     prevVariants.sizeStock.map((variant, i) =>
-  //       i === index
-  //         ? {
-  //             ...variant,
-
-  //             stock: parseInt(value) || 0,
-  //           }
-  //         : variant
-  //     )
-  //   );
-  // };
-  const customStyles = {
-    menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
-  };
-  // dataVariants[noVariants].img !== ""
-  // ? URL.createObjectURL(dataVariants[noVariants].img)
-  // :
-  const tmpTableVariants = {
-    img: (
-      <>
-        <label htmlFor={`imgVariants${noVariants}`}>
-          <img
-            className="w-20 cursor-pointer"
-            src={imageUrls[noVariants] || assets.upload_area}
-            alt="Upload Area"
-          />
-
-          <input
-            type="file"
-            id={`imgVariants${noVariants}`}
-            accept="image/*"
-            onChange={(e) =>
-              handleImageChangeForVariant(noVariants, e.target.files[0])
-            }
-            hidden
-          />
-        </label>
-      </>
-    ),
-    name: (
-      <input
-        placeholder="Input name variants"
-        className="px-3 py-2"
-        type="text"
-        onChange={(e) =>
-          handleVariantChange(noVariants, "name", e.target.value)
-        }
-      />
-    ),
-    sizeStock: (
-      <div className="items-center">
-        <Row className="flex items-center space-x-2 mt-4">
-          <label htmlFor={`s${noVariants}`}>S</label>
-          <input
-            id={`s${noVariants}`}
-            type="number"
-            placeholder="Stock"
-            className="px-3 py-2 "
-            onChange={(e) =>
-              handleSizeStockChange(noVariants, "S", e.target.value)
-            }
-          />
-        </Row>
-        <Row className="flex items-center space-x-2 mt-4">
-          <label htmlFor={`m${noVariants}`}>M</label>
-          <input
-            id={`m${noVariants}`}
-            type="number"
-            placeholder="Stock"
-            className="px-3 py-2 "
-            onChange={(e) =>
-              handleSizeStockChange(noVariants, "M", e.target.value)
-            }
-          />
-        </Row>
-        <Row className="flex items-center space-x-2 mt-4">
-          <label htmlFor={`l${noVariants}`}>L</label>
-          <input
-            id={`l${noVariants}`}
-            type="number"
-            placeholder="Stock"
-            className="px-3 py-2 "
-            onChange={(e) =>
-              handleSizeStockChange(noVariants, "L", e.target.value)
-            }
-          />
-        </Row>
-        <Row className="flex items-center space-x-2 mt-4">
-          <label htmlFor={`xl${noVariants}`}>XL</label>
-          <input
-            id={`xl${noVariants}`}
-            type="number"
-            placeholder="Stock"
-            className="px-3 py-2 "
-            onChange={(e) =>
-              handleSizeStockChange(noVariants, "XL", e.target.value)
-            }
-          />
-        </Row>
-        <Row className="flex items-center space-x-2 mt-4 mb-4">
-          <label htmlFor={`xll${noVariants}`}>XLL</label>
-          <input
-            id={`xll${noVariants}`}
-            type="number"
-            placeholder="Stock"
-            className="px-3 py-2 "
-            onChange={(e) =>
-              handleSizeStockChange(noVariants, "XLL", e.target.value)
-            }
-          />
-        </Row>
-      </div>
-    ),
-    kode: (
-      <input
-        type="text"
-        placeholder="kode"
-        className="px-3 py-2 "
-        onChange={(e) =>
-          handleVariantChange(noVariants, "kode", e.target.value)
-        }
-      />
-    ),
-  };
+  const [buttonAction, setButtonAction] = useState(true);
+  const [closeButton, setCloseButton] = useState(false);
 
   const [images, setImages] = useState([]);
+  const [video, setVideo] = useState(null);
+  const [vidDuration, setVidDuration] = useState(null);
+  const [tmpVideo, setTmpVideo] = useState(null);
+  const [viewVideo, setViewVideo] = useState(null);
+  const openPreview = () => setIsOpenPreview(true);
+  const closePreview = () => {
+    setTmpVideo(null);
+    setButtonAction(true);
+    setCloseButton(false);
+    setIsOpenPreview(false);
+  };
   const [productName, setProductName] = useState("");
   const [productDesc, setProductDesc] = useState("");
   const [productBest, setProductBest] = useState(false);
   const [productCat, setProductCat] = useState(null);
   const [productSub, setProductSub] = useState(null);
   const [productPrice, setProductPrice] = useState(0);
-  const [tableVariants, setTableVariants] = useState([tmpTableVariants]);
+  const [tableVariants, setTableVariants] = useState(null);
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
 
@@ -232,6 +66,92 @@ const Add = () => {
         toastIdError.current = toast.error("Max Image just 6");
       }
     }
+  };
+  const onDeleteImage = (indexToRemove) => {
+    setImages((prevImages) =>
+      prevImages.filter((_, index) => index !== indexToRemove)
+    );
+  };
+  const handleReplaceImage = (newImage, indexToReplace) => {
+    setImages((prevImages) =>
+      prevImages.map((image, index) =>
+        index === indexToReplace ? newImage : image
+      )
+    );
+  };
+  const videoDuration = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const videoElement = document.createElement("video");
+        videoElement.src = e.target.result;
+
+        videoElement.onloadedmetadata = () => {
+          resolve(videoElement.duration); // Resolve with duration in seconds
+        };
+
+        videoElement.onerror = () => {
+          reject(new Error("Failed to load video metadata"));
+        };
+      };
+
+      reader.onerror = () => {
+        reject(new Error("Failed to read the video file"));
+      };
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleVideoChange = async (event) => {
+    if (event.target.files[0]) {
+      let file = event.target.files[0];
+      let sizeVideo = file.size;
+
+      let duration = await videoDuration(file);
+      let convertSize = (sizeVideo / Math.pow(1024, 2)).toFixed(2);
+
+      // Check file size (max 30MB)
+      if (convertSize >= 30) {
+        console.log("File size exceeds 30MB");
+        return;
+      } else if (duration <= 10.0 || duration >= 60.0) {
+        console.log("ini masuk if", duration <= 10.0, duration);
+        return;
+      } else {
+        setViewVideo(URL.createObjectURL(file));
+        setTmpVideo(file);
+        openPreview();
+      }
+    }
+  };
+  const handleConfirmVideo = async () => {
+    console.log(tmpVideo);
+    let tmp = await videoDuration(tmpVideo);
+    let duration = Math.floor(tmp);
+    let minutes = Math.floor(duration / 60);
+    let seconds = duration % 60;
+
+    setVidDuration(`${minutes}:${seconds.toString().padStart(2, "0")}`);
+    setVideo(tmpVideo);
+    setViewVideo(URL.createObjectURL(tmpVideo));
+
+    closePreview();
+  };
+
+  const handleViewVideo = async () => {
+    setViewVideo(URL.createObjectURL(video));
+    setButtonAction(false);
+    setCloseButton(true);
+    openPreview();
+  };
+
+  const onDeleteVideo = () => {
+    setVideo(null);
+    setTmpVideo(null);
+    setViewVideo(null);
+    setVidDuration(null);
   };
   const breadcrumbItems = [
     { label: "Products" },
@@ -256,11 +176,6 @@ const Add = () => {
     });
   };
 
-  const addNewVariant = () => {
-    setTableVariants((prevVariants) => [...prevVariants, tmpTableVariants]);
-    setDataVariants((prevData) => [...prevData, dataTmp]);
-    setNoVariats(noVariants + 1);
-  };
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -401,38 +316,27 @@ const Add = () => {
     }
   };
 
-  const columns = [
-    { Header: "Thumbnail", accessor: "img" },
-    { Header: "Name", accessor: "name" },
-    { Header: "Size & Stock", accessor: "sizeStock" }, // Use the formatted field
-    { Header: "Kode Variants", accessor: "kode" },
-  ];
-
-  const data = [];
-  const config = {
-    enableSearch: false,
-    enablePagination: false,
-    enableSorting: false,
-    enableEntriesPerPage: false,
-  };
-
   useEffect(() => {
-    // let tmp = [];
-    // tmp.push(tmpTableVariants);
-    // setTableVariants(tmp);
-    setNoVariats(noVariants + 1);
     getCategory();
     getSubCategory();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(viewVideo);
+    };
+  }, [viewVideo]);
 
   useEffect(() => {}, [
     category,
     subCategory,
     images,
-    noVariants,
+    video,
+    vidDuration,
+    tmpVideo,
     imageUrls,
     productCat,
-    dataVariants,
+
     tableVariants,
   ]);
   return (
@@ -441,10 +345,11 @@ const Add = () => {
       <PageTitle title="Add Products" />
 
       <Cards header="Product">
+        {/* <div className="space-y-4"> */}
         <div className="items-start">
           <div className="w-full">
             <p className="mb-2">
-              Product Name <span>*</span>
+              Product Name <span id="mandatory">*</span>
             </p>
             <input
               className="w-full max-w-[500px] px-3 py-2"
@@ -454,7 +359,10 @@ const Add = () => {
               onChange={(e) => setProductName(e.target.value)}
             />
           </div>
-          <p className="mb-2">Upload Image {images.length}/6</p>
+          <br />
+          <p className="mb-2">
+            Upload Image {images.length}/6 <span id="mandatory">*</span>
+          </p>
           <div className="flex gap-2">
             {images.length === 0 ? (
               <label htmlFor="image1">
@@ -471,10 +379,15 @@ const Add = () => {
             ) : (
               <>
                 {images.map((image, index) => (
-                  <label key={index} htmlFor={`image${index + 1}`}>
+                  <label
+                    key={index}
+                    className="relative group"
+                    htmlFor={`image${index + 1}`}
+                  >
                     <img
                       className="w-20"
                       src={URL.createObjectURL(image)}
+                      muted
                       alt=""
                     />
                     <input
@@ -482,9 +395,19 @@ const Add = () => {
                       id={`image${index + 1}`}
                       accept="image/*"
                       hidden
-                      multiple
-                      onChange={handleImageChange}
+                      onChange={(e) =>
+                        handleReplaceImage(e.target.files[0], index)
+                      }
                     />
+                    <button
+                      className="absolute top-1 right-1 bg-gray-800 bg-opacity-75 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => onDeleteImage(index)}
+                    >
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        className="text-white text-sm"
+                      />
+                    </button>
                   </label>
                 ))}
                 {images.length < 6 ? (
@@ -506,7 +429,90 @@ const Add = () => {
             )}
           </div>
         </div>
+        <br />
+        <p className="mb-2">Upload Video</p>
+        <div className="flex gap-2 ">
+          {!video ? (
+            <div className="flex gap-4">
+              <label htmlFor="video" className="cursor-pointer">
+                <img className="w-20" src={assets.upload_area} alt="" />
+                <input
+                  type="file"
+                  id="video"
+                  accept="video/mp4"
+                  hidden
+                  multiple
+                  onChange={handleVideoChange}
+                />
+              </label>
+              <div className="ml-5">
+                <li className="hintVideo">
+                  File video maks. harus 30Mb dengan resolusi tidak melebihi
+                  1280 x 1280px.
+                </li>
+                <li className="hintVideo">Durasi: 10-60detik</li>
+                <li className="hintVideo">Format: MP4</li>
+                <li className="hintVideo">
+                  Catatan: Kamu dapat menampilkan produk saat video sedang
+                  diproses. Video akan muncul setelah berhasil diproses.
+                </li>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <div className="relative group w-40 h-40 border rounded-lg overflow-hidden">
+                {isLoadingVideo && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-white"></div>
+                  </div>
+                )}
+                {/* Video Preview */}
+                <video
+                  className="w-full h-full object-cover"
+                  src={viewVideo}
+                  onLoadStart={() => setIsLoadingVideo(true)} // Show spinner
+                  onCanPlay={() => setIsLoadingVideo(false)} // Hide spinner when ready
+                  muted
+                />
 
+                {/* Duration Display */}
+                <div className="absolute bottom-2 right-2 bg-black bg-opacity-70  text-xs px-2 py-1 rounded">
+                  <p className="text-sm text-white">{vidDuration}</p>
+                </div>
+
+                {/* Hover Actions */}
+                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-x-6 bg-gray-800 bg-opacity-75 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    className="text-white hover:text-blue-400"
+                    onClick={handleViewVideo}
+                  >
+                    <FontAwesomeIcon icon={faEye} />
+                  </button>
+                  <span className="text-white">|</span>
+                  <button
+                    className="text-white hover:text-red-400"
+                    onClick={onDeleteVideo}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </div>
+              </div>
+              <div className="ml-5">
+                <li className="hintVideo">
+                  File video maks. harus 30Mb dengan resolusi tidak melebihi
+                  1280 x 1280px.
+                </li>
+                <li className="hintVideo">Durasi: 10-60detik</li>
+                <li className="hintVideo">Format: MP4</li>
+                <li className="hintVideo">
+                  Catatan: Kamu dapat menampilkan produk saat video sedang
+                  diproses. Video akan muncul setelah berhasil diproses.
+                </li>
+              </div>
+            </div>
+          )}
+        </div>
+        <br />
         <div className="w-full">
           <p className="mb-2">Product Description</p>
           <textarea
@@ -593,12 +599,11 @@ const Add = () => {
             Add to bestseller
           </label>
         </div>
+        {/* </div> */}
       </Cards>
+
       <Cards header="Variants">
-        <Tables columns={columns} data={tableVariants} config={config}></Tables>
-        <Button className="mt-4" onClick={addNewVariant}>
-          <FontAwesomeIcon icon={faCirclePlus} /> Add another variant
-        </Button>
+        <VariantTable setTableVariants={setTableVariants} />
       </Cards>
       <Row className="items-end justify-end">
         <Col>
@@ -612,13 +617,42 @@ const Add = () => {
           </Button>
         </Col>
       </Row>
-      {/* <button
-        className="w-28 py-3 mt-4 bg-black text-white"
-        type="button"
-        onClick={addProduct}
+      <Modal
+        isOpen={isOpenPreview}
+        onClose={closePreview}
+        header={"Preview Video"}
+        maxWidth="max-w-xl"
+        closeButton={closeButton}
+        closeOnOutsideClick={false}
       >
-        Add Products
-      </button> */}
+        <div className="flex flex-col items-center justify-center space-y-4 p-4 sm:p-6">
+          {/* Video Preview */}
+          <video
+            controls
+            className="w-full max-w-md max-h-64 rounded-lg sm:max-h-96"
+          >
+            <source src={viewVideo} type="video/mp4" />
+          </video>
+
+          {/* Action Buttons */}
+          {buttonAction && (
+            <div className="flex flex-col sm:flex-row justify-end sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4 w-full">
+              <button
+                className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                onClick={closePreview}
+              >
+                Cancel
+              </button>
+              <button
+                className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleConfirmVideo}
+              >
+                Confirm
+              </button>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
